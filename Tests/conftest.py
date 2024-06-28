@@ -4,8 +4,6 @@ from allure_commons.types import AttachmentType
 from selenium import webdriver
 from Utilities import ReadConfigurations
 
-
-
 @pytest.fixture()
 def log_on_failure(request):
     yield
@@ -27,18 +25,20 @@ def pytest_runtest_makereport(item, call):
 def setup_and_teardown(request):
     global driver
     driver = None
-    try:
-        select_browser = ReadConfigurations.read_configuration("basic", "browser")
-        if select_browser.__eq__("chrome"):
-            driver = webdriver.Chrome()
-        elif select_browser.__eq__("edge"):
-            driver = webdriver.Edge()
-        elif select_browser.__eq__("firefox"):
-            driver = webdriver.Firefox()
-        else:
-            print("Select either chrome, edge or firefox.")
-    except:
-        print("Error in invoking web browser")
+    select_browser = ReadConfigurations.read_configuration("basic", "browser")
+    options=None
+    if select_browser.__eq__("chrome"):
+        options = webdriver.ChromeOptions()
+    elif select_browser.__eq__("edge"):
+        options = webdriver.EdgeOptions()
+    elif select_browser.__eq__("firefox"):
+        options = webdriver.FirefoxOptions()
+    else:
+        raise ValueError("Select either chrome, edge or firefox.")
+    driver = webdriver.Remote(
+        command_executor='http://192.168.0.113:4445/wd/hub',
+        options=options
+    )
     driver.maximize_window()
     test_url = ReadConfigurations.read_configuration("basic", "url")
     driver.get(test_url)
