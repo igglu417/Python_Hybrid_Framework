@@ -1,0 +1,82 @@
+Download grid JAR from : https://www.selenium.dev/downloads/
+
+---------------------- 1. STANDALONE ----------------------
+
+-- Add browser drivers to same folder as JAR
+-- open terminal in same folder as grid JAR
+----------- Find ports listening on existing 4444: -----------
+netstat -ano | findstr :4444
+
+` NOT RECOMMENDED
+TCP    127.0.0.1:4444         0.0.0.0:0              LISTENING       18092
+`
+TASK KILL:   taskkill /PID 18092 /F
+
+----------- Set grid on different port: -----------
+
+java -jar selenium-server-4.21.0.jar standalone --port 4445
+
+Check satus:
+http://192.168.0.113:4445/status
+
+CHeck UI:
+http://192.168.0.113:4445/ui/
+
+Make changes to code remote url http://192.168.0.113:4445/wd/hub
+
+
+---------------------- 2. HUB & NODE ----------------------
+---------- 1. HUB & NODE on same machine
+Initiate Hub:
+java -jar selenium-server-4.21.0.jar hub --port 4445
+
+Initiate Node:
+java -jar selenium-server-4.21.0.jar node
+
+---------- 2. HUB & NODE on differemt machine
+java -jar selenium-server-4.21.0.jar hub --port 4445
+
+NODE machine should have the same files(grid jar and drivers) as the HUB machine
+
+PICK UP THE {hubIP} FROM HUB EXECUITON WRT PORT NUMBERS:
+java -jar selenium-server-4.21.0.jar node --detect-drivers true --publish-events tcp://{hubIP}:4442 --subscribe-events tcp://{hubIP}:4443
+
+
+
+FOR example:
+C:\Users\IKHLAS\Downloads\Selenium Grid Files>java -jar selenium-server-4.21.0.jar hub --port 4445
+22:29:13.807 INFO [LoggingOptions.configureLogEncoding] - Using the system default encoding
+22:29:13.811 INFO [OpenTelemetryTracer.createTracer] - Using OpenTelemetry for tracing
+22:29:13.956 INFO [BoundZmqEventBus.<init>] - XPUB binding to [binding to tcp://*:4442, advertising as tcp://192.168.0.113:4442], XSUB binding to [binding to tcp://*:4443, advertising as tcp://192.168.0.113:4443]
+22:29:13.993 INFO [UnboundZmqEventBus.<init>] - Connecting to tcp://192.168.0.113:4442 and tcp://192.168.0.113:4443
+
+Now enter the node command:
+java -jar selenium-server-4.21.0.jar node --detect-drivers true --publish-events tcp://192.168.0.113:4442 --subscribe-events tcp://192.168.0.113:4443
+
+
+
+---------------------- 3. Distributed ----------------------
+All the GRID components need to be started individually(Reutor, session map,...). 
+Distributed mode provides more flexibility as compared to prevos interations.
+Allows more complex and large GRID size.
+
+https://www.selenium.dev/documentation/grid/components/
+
+java -jar selenium-server-4.21.0.jar event-bus
+java -jar selenium-server-4.21.0.jar sessions
+java -jar selenium-server-4.21.0.jar sessionqueue
+java -jar selenium-server-4.21.0.jar distributor --sessions http://192.168.0.113:5556 --sessionqueue http://192.168.0.113:5559 --bind-bus false
+java -jar selenium-server-4.21.0.jar router --port 4445 --sessions http://192.168.0.113:5556 --distributor http://192.168.0.113:5553 --sessionqueue http://192.168.0.113:5559
+java -jar selenium-server-4.21.0.jar node
+
+
+
+Run the tests paralelly(pytest-xdist) on different machines, by distributing the tests on multiple machines.
+Main USE of SELENIUM GRID
+
+
+
+
+
+
+
